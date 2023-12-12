@@ -51,6 +51,10 @@ require("lazy").setup({
                         -- show only 'N' for normal, 'I' for insert, etc
                         { 'mode', fmt = function(str) return str:sub(1,1) end }
                     },
+                    lualine_c = {
+                        -- show the current file path relative to the project root
+                        { 'filename', path = 1 },
+                    },
                 },
             })
         end,
@@ -69,15 +73,8 @@ require("lazy").setup({
         "neovim/nvim-lspconfig",
         config = function ()
             local lspconfig = require("lspconfig")
-            lspconfig.pyright.setup {
-                settings = {
-                    python = {
-                        analysis = {
-                            -- typeCheckingMode = "off",
-                        },
-                    },
-                },
-            }
+            lspconfig.pyright.setup {}
+            lspconfig.tsserver.setup {}
 
             vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
             vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
@@ -145,7 +142,10 @@ require("lazy").setup({
             require("nvim-treesitter.configs").setup({
                 ensure_installed = {
                     'comment',
+                    'lua',
                     'python',
+                    'tsx',
+                    'typescript',
                 },
                 indent = { enable = true },
                 highlight = { enable = true },
@@ -161,7 +161,13 @@ require("lazy").setup({
     -- a fast finder required(ish) for telescope
     {
         'nvim-telescope/telescope-fzf-native.nvim',
-        run = 'make',
+        run = 'arch -arm64 make',
+    },
+
+    -- a file browser for telescope
+    {
+        "nvim-telescope/telescope-file-browser.nvim",
+        dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" }
     },
 
     -- fuzzy finder like fzf
@@ -180,37 +186,66 @@ require("lazy").setup({
                         },
                     },
                 },
+                extensions = {
+                    fzf = {}
+                },
             }
+            require('telescope').load_extension('fzf')
+            require('telescope').load_extension('file_browser')
             local builtin = require('telescope.builtin')
             vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
             vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
             vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
             vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
-        end
-    },
+            vim.keymap.set('n', '<leader>fd', ":Telescope file_browser path=%:p:h select_buffer=true<CR>", {})
+            end
+        },
 
-    -- git signs in the gutter
-    {
-        'lewis6991/gitsigns.nvim',
-        config = function ()
-            require('gitsigns').setup {}
-        end
-    },
+        -- git signs in the gutter
+        {
+            'lewis6991/gitsigns.nvim',
+            config = function ()
+                require('gitsigns').setup {
+                    signs = {
+                        add          = { text = '▍' },
+                        change       = { text = '▍' },
+                        delete       = { text = '_' },
+                        topdelete    = { text = '‾' },
+                        changedelete = { text = '~' },
+                        untracked    = { text = '┆' },
+                    },
+                }
+            end
+        },
 
-    -- automagic completion
-    {
-        "github/copilot.vim",
-        config = function ()
-        end
-    },
-})
+        -- automagic completion
+        {
+            "github/copilot.vim",
+            config = function ()
+            end
+        },
 
--- 4 spaces > tabs for me
-vim.opt.expandtab = true
-vim.opt.shiftwidth = 4
-vim.opt.tabstop = 4
-vim.opt.autoindent = true
-vim.opt.wrap = true
+        -- an LSP server for stuff like formatting
+        {
+            "jose-elias-alvarez/null-ls.nvim",
+            requires = {
+                "nvim-lua/plenary.nvim",
+                "neovim/nvim-lspconfig",
+            },
+            config = function ()
+                local null_ls = require("null-ls")
+                null_ls.setup({
+                    sources = {
+                        null_ls.builtins.formatting.black,
+                    },
+                })
+            end
+        },
+    })
 
--- reformat my python code ty
-vim.api.nvim_create_user_command('Black', '!black %', { nargs = 0 })
+    -- 4 spaces > tabs for me
+    vim.opt.expandtab = true
+    vim.opt.shiftwidth = 4
+    vim.opt.tabstop = 4
+    vim.opt.autoindent = true
+    vim.opt.wrap = true
