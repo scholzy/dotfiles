@@ -144,6 +144,7 @@ require("lazy").setup({
                     'comment',
                     'lua',
                     'python',
+                    'terraform',
                     'tsx',
                     'typescript',
                 },
@@ -243,9 +244,21 @@ require("lazy").setup({
         },
     })
 
-    -- 4 spaces > tabs for me
-    vim.opt.expandtab = true
-    vim.opt.shiftwidth = 4
-    vim.opt.tabstop = 4
-    vim.opt.autoindent = true
-    vim.opt.wrap = true
+-- 4 spaces > tabs for me
+vim.opt.expandtab = true
+vim.opt.shiftwidth = 4
+vim.opt.tabstop = 4
+vim.opt.autoindent = true
+vim.opt.wrap = true
+
+-- except for typescript/javascript
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { "*" },
+    callback = function(args)
+        local ft = vim.bo[args.buf].filetype
+        if ft == "typescriptreact" then
+            vim.opt.shiftwidth = 2
+            vim.opt.tabstop = 2
+        end
+    end,
+})
