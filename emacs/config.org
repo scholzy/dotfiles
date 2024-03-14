@@ -77,6 +77,13 @@
 		  doom-modeline-env-version nil
 		  doom-modeline-buffer-encoding nil))
 #+end_src
+** Keep the scratch buffer between shutdowns
+#+begin_src emacs-lisp
+  (use-package persistent-scratch
+    :ensure t
+    :defer nil
+    :init (persistent-scratch-setup-default))
+#+end_src
 * General programming settings
 ** Fix how Emacs makes backup files
 #+begin_src emacs-lisp
@@ -251,7 +258,7 @@
 #+begin_src emacs-lisp
   (use-package projectile
     :ensure t
-    :defer t
+    :defer nil
     :config (progn
 	      (projectile-mode 1)
 	      (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)))
